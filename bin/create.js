@@ -338,9 +338,10 @@ async function main() {
     `${c.dim}# add the export to ~/.zshrc / ~/.bashrc to persist${c.reset}`,
   ]);
 
-  printSteps("2. Install ui dependencies:", [
+  printSteps("2. Install ui dependencies + extract i18n strings:", [
     `${c.dim}cd ${basename(targetDir)}/ui${c.reset}`,
     `${c.dim}npm install --legacy-peer-deps${c.reset}`,
+    `${c.dim}npm run i18n:extract${c.reset}  # populates src/locales/{en,pt,es}.po`,
   ]);
 
   printSteps("3. Run the BFF locally:", [
@@ -349,23 +350,26 @@ async function main() {
     `${c.dim}curl http://localhost:8099/health${c.reset}`,
   ]);
 
-  printSteps("4. Publish your ui package (when you're ready):", [
+  printSteps("4. Set the GHCR_PAT secret (publish workflow needs it):", [
+    `${c.dim}gh secret set GHCR_PAT --repo <your-org>/<your-plugin-repo>${c.reset}`,
+    `${c.dim}# value = a PAT with read:packages scope${c.reset}`,
+  ]);
+
+  printSteps("5. Publish your ui package (when you're ready):", [
     `${c.dim}cd ${basename(targetDir)}/ui${c.reset}`,
     `${c.dim}git tag ${slug}-ui-v0.0.1 && git push origin --tags${c.reset}`,
     `${c.dim}# GHA at .github/workflows/publish-ui.yml publishes to GHCR${c.reset}`,
   ]);
 
-  printSteps("5. Wire into the Martha host (PR to westeuropeco/martha):", [
+  printSteps("6. Wire into the Martha host (PR to westeuropeco/martha):", [
     `${c.dim}martha-admin-svelte/package.json:${c.reset}`,
     `    "@westeuropeco/${slug}-ui": "^0.0.1"`,
-    `${c.dim}martha-admin-svelte/src/lib/plugins/discover.ts:${c.reset}`,
-    `    REGISTRY["${slug}"] = () => import("@westeuropeco/${slug}-ui");`,
-    `${c.dim}martha-admin-svelte/vite.config.ts ssr.noExternal:${c.reset}`,
-    `    "@westeuropeco/${slug}-ui",`,
+    `${c.dim}# discover.generated.ts + ssr.noExternal + the wuchale${c.reset}`,
+    `${c.dim}# adapter all auto-update from the package.json scan.${c.reset}`,
     `${c.dim}+ register your BFF spec via Martha's seed_plugins flow${c.reset}`,
   ]);
 
-  printSteps("6. Read the docs:", [
+  printSteps("7. Read the docs:", [
     `${c.dim}https://github.com/westeuropeco/martha/blob/main/dev_docs/specs/plugin-author-guide.md${c.reset}`,
   ]);
 
